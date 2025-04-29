@@ -10,6 +10,7 @@ using Microsoft.OpenApi.Models;
 using System.Text.Json.Serialization;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using Microsoft.Extensions.FileProviders;
 
 namespace MedicalArchive.API
 {
@@ -135,7 +136,11 @@ namespace MedicalArchive.API
             app.UseHttpsRedirection();
 
             // Статичні файли для завантажених документів
-            app.UseStaticFiles();
+            app.UseStaticFiles(new StaticFileOptions
+            {
+                FileProvider = new PhysicalFileProvider(Path.Combine(Directory.GetCurrentDirectory(), "Uploads")),
+                RequestPath = "/files"
+            });
 
             // CORS
             app.UseCors("AllowLocalhost");

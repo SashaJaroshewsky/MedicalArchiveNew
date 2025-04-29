@@ -23,6 +23,8 @@ import AppointmentDetailPage from '../pages/DoctorAppointments/AppointmentDetail
 // import PatientsPage from '../pages/Doctor/PatientsPage';
 // import PatientDetailPage from '../pages/Doctor/PatientDetailPage';
 
+import PrescriptionsPage from '../pages/Prescriptions/PrescriptionsPage';
+
 const AppRoutes: React.FC = () => {
   const { isAuthenticated } = useAuth();
 
@@ -65,6 +67,15 @@ const AppRoutes: React.FC = () => {
         element={
           <PrivateRoute>
             <AppointmentDetailPage />
+          </PrivateRoute>
+        } 
+      />
+
+      <Route 
+        path="/prescriptions" 
+        element={
+          <PrivateRoute>
+            <PrescriptionsPage />
           </PrivateRoute>
         } 
       />

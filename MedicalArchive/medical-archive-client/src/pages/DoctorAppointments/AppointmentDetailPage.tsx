@@ -3,14 +3,19 @@ import { Container, Row, Col, Card, Button, Alert, Badge } from 'react-bootstrap
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import Layout from '../../components/common/Layout';
 import DoctorAppointmentsAPI from '../../api/doctor-appointments.api';
+import { getFileUrl, getFileExtension } from '../../utils/file-utils';
+
 import { DoctorAppointment, DoctorAppointmentUpdateRequest } from '../../models/doctor-appointment.model';
 import { format } from 'date-fns';
 import Modal from '../../components/common/Modal';
 import AppointmentForm from '../../components/forms/AppointmentForm';
+import { useAuth } from '../../context/AuthContext';
+
 
 const AppointmentDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [appointment, setAppointment] = useState<DoctorAppointment | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -65,29 +70,38 @@ const AppointmentDetailPage: React.FC = () => {
   };
 
   const renderDocument = (documentPath: string) => {
-    const fileExtension = documentPath.split('.').pop()?.toLowerCase();
+    if (!documentPath) return null;
+    
+    const fileExtension = getFileExtension(documentPath);
+    const fileUrl = getFileUrl(documentPath);
+    
+    // Якщо це зображення
+    if (['jpg', 'jpeg', 'png', 'gif'].includes(fileExtension)) {
+      return (
+        <div className="text-center">
+          <img
+            src={fileUrl}
+            alt="Документ прийому"
+            className="img-fluid rounded"
+            style={{ maxHeight: '500px', objectFit: 'contain' }}
+            onError={(e) => {
+              console.error('Error loading image:', fileUrl);
+              const target = e.target as HTMLImageElement;
+              target.style.display = 'none';
+            }}
+          />
+        </div>
+      );
+    }
     
     // Якщо це PDF
     if (fileExtension === 'pdf') {
       return (
         <div className="ratio ratio-16x9">
           <embed
-            src={`${process.env.REACT_APP_API_URL}${documentPath}`}
+            src={fileUrl}
             type="application/pdf"
             className="w-100 h-100 rounded"
-          />
-        </div>
-      );
-    } 
-    // Якщо це зображення
-    else if (['jpg', 'jpeg', 'png', 'gif'].includes(fileExtension || '')) {
-      return (
-        <div className="text-center">
-          <img
-            src={`${process.env.REACT_APP_API_URL}${documentPath}`}
-            alt="Документ прийому"
-            className="img-fluid rounded"
-            style={{ maxHeight: '500px' }}
           />
         </div>
       );
@@ -98,8 +112,8 @@ const AppointmentDetailPage: React.FC = () => {
       <div className="text-center">
         <Button 
           variant="link" 
-          href={`${process.env.REACT_APP_API_URL}${documentPath}`}
-          target="_blank"
+          onClick={() => window.open(fileUrl, '_blank')}
+          className="p-0"
         >
           Відкрити документ в новій вкладці
         </Button>
@@ -206,8 +220,11 @@ const AppointmentDetailPage: React.FC = () => {
                               <Badge bg="success" className="me-2">Є документ</Badge>
                               <Button 
                                 variant="link" 
-                                href={`${process.env.REACT_APP_API_URL}${appointment.documentFilePath}`}
-                                target="_blank"
+                                onClick={() => {
+                                  if (appointment.documentFilePath) {
+                                    window.open(getFileUrl(appointment.documentFilePath), '_blank');
+                                  }
+                                }}
                                 className="p-0"
                               >
                                 Відкрити в новій вкладці
