@@ -1,4 +1,3 @@
-
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using MedicalArchive.API.Application.Interfaces;
 using MedicalArchive.API.Application.Services;

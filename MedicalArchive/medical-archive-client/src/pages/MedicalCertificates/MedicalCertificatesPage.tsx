@@ -1,17 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { Container, Row, Col, Card, Button, Table, Form, Badge, Alert } from 'react-bootstrap';
+import { Link } from 'react-router-dom';
 import Layout from '../../components/common/Layout';
-import PrescriptionsAPI from '../../api/prescriptions.api';
-import { Prescription, PrescriptionCreateRequest } from '../../models/prescription.model';
+import MedicalCertificatesAPI from '../../api/medical-certificates.api';
+import { MedicalCertificate, MedicalCertificateCreateRequest } from '../../models/medical-certificate.model';
 import { format } from 'date-fns';
 import Modal from '../../components/common/Modal';
-import PrescriptionForm from '../../components/forms/PrescriptionForm';
-import { useAuth } from '../../context/AuthContext';
-import { Link } from 'react-router-dom';
+import MedicalCertificateForm from '../../components/forms/MedicalCertificateForm';
+import { getFileUrl } from '../../utils/file-utils';
 
-const PrescriptionsPage: React.FC = () => {
-  const { user } = useAuth();
-  const [prescriptions, setPrescriptions] = useState<Prescription[]>([]);
+const MedicalCertificatesPage: React.FC = () => {
+  const [certificates, setCertificates] = useState<MedicalCertificate[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
@@ -22,14 +21,14 @@ const PrescriptionsPage: React.FC = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
-    loadPrescriptions();
+    loadCertificates();
   }, []);
 
-  const loadPrescriptions = async () => {
+  const loadCertificates = async () => {
     try {
       setLoading(true);
-      const data = await PrescriptionsAPI.getAllPrescriptions();
-      setPrescriptions(data);
+      const data = await MedicalCertificatesAPI.getAllCertificates();
+      setCertificates(data);
       setError(null);
     } catch (err) {
       setError('Помилка завантаження даних. Спробуйте пізніше.');
@@ -40,14 +39,14 @@ const PrescriptionsPage: React.FC = () => {
 
   const handleSearch = async () => {
     if (!searchTerm) {
-      await loadPrescriptions();
+      await loadCertificates();
       return;
     }
 
     try {
       setLoading(true);
-      const data = await PrescriptionsAPI.searchPrescriptions(searchTerm);
-      setPrescriptions(data);
+      const data = await MedicalCertificatesAPI.searchCertificates(searchTerm);
+      setCertificates(data);
       setError(null);
     } catch (err) {
       setError('Помилка пошуку. Спробуйте пізніше.');
@@ -64,8 +63,8 @@ const PrescriptionsPage: React.FC = () => {
 
     try {
       setLoading(true);
-      const data = await PrescriptionsAPI.getPrescriptionsByDateRange(startDate, endDate);
-      setPrescriptions(data);
+      const data = await MedicalCertificatesAPI.getCertificatesByDateRange(startDate, endDate);
+      setCertificates(data);
       setError(null);
     } catch (err) {
       setError('Помилка фільтрації за датою. Спробуйте пізніше.');
@@ -74,41 +73,31 @@ const PrescriptionsPage: React.FC = () => {
     }
   };
 
-  const handleCreate = async (data: PrescriptionCreateRequest) => {
+  const handleCreate = async (data: MedicalCertificateCreateRequest) => {
     try {
       setIsSubmitting(true);
       setFormError(null);
-      await PrescriptionsAPI.createPrescription(data);
-      await loadPrescriptions();
+      await MedicalCertificatesAPI.createCertificate(data);
+      await loadCertificates();
       setShowModal(false);
     } catch (err: any) {
-      setFormError(err.response?.data?.message || 'Помилка при створенні рецепту');
+      setFormError(err.response?.data?.message || 'Помилка при створенні довідки');
     } finally {
       setIsSubmitting(false);
     }
   };
 
   const handleDelete = async (id: number) => {
-    if (!window.confirm('Ви впевнені, що хочете видалити цей рецепт?')) {
+    if (!window.confirm('Ви впевнені, що хочете видалити цю довідку?')) {
       return;
     }
 
     try {
-      await PrescriptionsAPI.deletePrescription(id);
-      setPrescriptions(prescriptions.filter(p => p.id !== id));
+      await MedicalCertificatesAPI.deleteCertificate(id);
+      setCertificates(certificates.filter(cert => cert.id !== id));
     } catch (err) {
-      setError('Помилка видалення рецепту. Спробуйте пізніше.');
+      setError('Помилка видалення довідки. Спробуйте пізніше.');
     }
-  };
-
-  const handleDownload = (prescription: Prescription) => {
-    if (!prescription.documentFilePath) return;
-    
-    // Створюємо URL для завантаження файлу
-    const fileUrl = `${process.env.REACT_APP_API_URL || 'https://localhost:7066'}/api/Files/${prescription.documentFilePath}`;
-    
-    // Відкриваємо файл у новій вкладці
-    window.open(fileUrl, '_blank');
   };
 
   return (
@@ -117,13 +106,13 @@ const PrescriptionsPage: React.FC = () => {
         <Row className="justify-content-center">
           <Col xs={12} lg={10} xl={9}>
             <div className="d-flex justify-content-between align-items-center mb-4">
-              <h1 className="mb-0">Рецепти</h1>
+              <h1 className="mb-0">Медичні довідки</h1>
               <Button 
                 variant="primary"
                 onClick={() => setShowModal(true)}
               >
                 <i className="bi bi-plus-lg me-2"></i>
-                Додати рецепт
+                Додати довідку
               </Button>
             </div>
 
@@ -136,7 +125,7 @@ const PrescriptionsPage: React.FC = () => {
                       <div className="d-flex gap-2">
                         <Form.Control
                           type="text"
-                          placeholder="Пошук за назвою ліків"
+                          placeholder="Пошук за назвою"
                           value={searchTerm}
                           onChange={(e) => setSearchTerm(e.target.value)}
                         />
@@ -182,19 +171,19 @@ const PrescriptionsPage: React.FC = () => {
                       <span className="visually-hidden">Завантаження...</span>
                     </div>
                   </div>
-                ) : prescriptions.length === 0 ? (
+                ) : certificates.length === 0 ? (
                   <div className="text-center py-5">
-                    <i className="bi bi-journal-medical text-muted" style={{ fontSize: '3rem' }}></i>
-                    <h4 className="mt-3 mb-2">Рецептів ще немає</h4>
+                    <i className="bi bi-file-earmark-medical text-muted" style={{ fontSize: '3rem' }}></i>
+                    <h4 className="mt-3 mb-2">Довідок ще немає</h4>
                     <p className="text-muted mb-4">
-                      Додайте свій перший рецепт
+                      Додайте свою першу медичну довідку
                     </p>
                     <Button 
                       variant="primary"
                       onClick={() => setShowModal(true)}
                     >
                       <i className="bi bi-plus-lg me-2"></i>
-                      Додати перший рецепт
+                      Додати першу довідку
                     </Button>
                   </div>
                 ) : (
@@ -203,24 +192,24 @@ const PrescriptionsPage: React.FC = () => {
                       <thead>
                         <tr>
                           <th>Дата</th>
-                          <th>Назва ліків</th>
-                          <th>Дозування</th>
+                          <th>Назва</th>
+                          <th>Опис</th>
                           <th>Документ</th>
                           <th>Дії</th>
                         </tr>
                       </thead>
                       <tbody>
-                        {prescriptions.map((prescription) => (
-                          <tr key={prescription.id}>
-                            <td>{format(new Date(prescription.issueDate), 'dd.MM.yyyy')}</td>
-                            <td>{prescription.medicationName}</td>
-                            <td>{prescription.dosage}</td>
+                        {certificates.map((certificate) => (
+                          <tr key={certificate.id}>
+                            <td>{format(new Date(certificate.issueDate), 'dd.MM.yyyy')}</td>
+                            <td>{certificate.title}</td>
+                            <td>{certificate.description}</td>
                             <td>
-                              {prescription.documentFilePath ? (
+                              {certificate.documentFilePath ? (
                                 <Badge 
                                   bg="success" 
                                   className="cursor-pointer"
-                                  onClick={() => handleDownload(prescription)}
+                                  onClick={() => certificate.documentFilePath && window.open(getFileUrl(certificate.documentFilePath), '_blank')}
                                   style={{ cursor: 'pointer' }}
                                 >
                                   Переглянути
@@ -232,7 +221,7 @@ const PrescriptionsPage: React.FC = () => {
                             <td>
                               <div className="d-flex gap-2">
                                 <Link
-                                  to={`/prescriptions/${prescription.id}`}
+                                  to={`/medical-certificates/${certificate.id}`}
                                   className="btn btn-sm btn-outline-primary"
                                 >
                                   <i className="bi bi-eye me-1"></i>
@@ -241,7 +230,7 @@ const PrescriptionsPage: React.FC = () => {
                                 <Button
                                   variant="outline-danger"
                                   size="sm"
-                                  onClick={() => handleDelete(prescription.id)}
+                                  onClick={() => handleDelete(certificate.id)}
                                 >
                                   <i className="bi bi-trash me-1"></i>
                                   Видалити
@@ -266,7 +255,7 @@ const PrescriptionsPage: React.FC = () => {
           setShowModal(false);
           setFormError(null);
         }}
-        title="Новий рецепт"
+        title="Нова медична довідка"
         size="lg"
         submitButton={{
           text: "Зберегти",
@@ -277,7 +266,7 @@ const PrescriptionsPage: React.FC = () => {
           }
         }}
       >
-        <PrescriptionForm
+        <MedicalCertificateForm
           onSubmit={handleCreate}
           error={formError}
         />
@@ -286,4 +275,4 @@ const PrescriptionsPage: React.FC = () => {
   );
 };
 
-export default PrescriptionsPage;
+export default MedicalCertificatesPage;

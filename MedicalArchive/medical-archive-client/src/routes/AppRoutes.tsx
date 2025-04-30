@@ -16,14 +16,23 @@ import AppointmentsPage from '../pages/DoctorAppointments/AppointmentsPage';
 import AppointmentDetailPage from '../pages/DoctorAppointments/AppointmentDetailPage';
 // import AppointmentFormPage from '../pages/DoctorAppointments/AppointmentFormPage';
 
-// // Doctor Access
-// import DoctorAccessPage from '../pages/DoctorAccess/DoctorAccessPage';
+// Doctor Access
+import DoctorAccessPage from '../pages/DoctorAccess/DoctorAccessPage';
 
 // // Doctor Routes
 // import PatientsPage from '../pages/Doctor/PatientsPage';
 // import PatientDetailPage from '../pages/Doctor/PatientDetailPage';
 
 import PrescriptionsPage from '../pages/Prescriptions/PrescriptionsPage';
+import PrescriptionDetailPage from '../pages/Prescriptions/PrescriptionDetailPage';
+import ReferralsPage from '../pages/Referrals/ReferralsPage';
+import ReferralDetailPage from '../pages/Referrals/ReferralDetailPage';
+import VaccinationsPage from '../pages/Vaccinations/VaccinationsPage';
+import VaccinationDetailPage from '../pages/Vaccinations/VaccinationDetailPage';
+import MedicalCertificatesPage from '../pages/MedicalCertificates/MedicalCertificatesPage';
+import MedicalCertificateDetailPage from '../pages/MedicalCertificates/MedicalCertificateDetailPage';
+import PatientsPage from '../pages/Doctor/PatientsPage';
+import PatientArchivePage from '../pages/Doctor/PatientArchivePage';
 
 const AppRoutes: React.FC = () => {
   const { isAuthenticated } = useAuth();
@@ -76,6 +85,98 @@ const AppRoutes: React.FC = () => {
         element={
           <PrivateRoute>
             <PrescriptionsPage />
+          </PrivateRoute>
+        } 
+      />
+      <Route 
+        path="/prescriptions/:id" 
+        element={
+          <PrivateRoute>
+            <PrescriptionDetailPage />
+          </PrivateRoute>
+        } 
+      />
+
+      {/* Referrals Routes */}
+      <Route 
+        path="/referrals" 
+        element={
+          <PrivateRoute>
+            <ReferralsPage />
+          </PrivateRoute>
+        } 
+      />
+      
+      <Route 
+        path="/referrals/:id" 
+        element={
+          <PrivateRoute>
+            <ReferralDetailPage />
+          </PrivateRoute>
+        } 
+      />
+
+      {/* Vaccinations Routes */}
+      <Route 
+        path="/vaccinations" 
+        element={
+          <PrivateRoute>
+            <VaccinationsPage />
+          </PrivateRoute>
+        } 
+      />
+      
+      <Route 
+        path="/vaccinations/:id" 
+        element={
+          <PrivateRoute>
+            <VaccinationDetailPage />
+          </PrivateRoute>
+        } 
+      />
+
+      {/* Medical Certificates Routes */}
+      <Route 
+        path="/medical-certificates" 
+        element={
+          <PrivateRoute>
+            <MedicalCertificatesPage />
+          </PrivateRoute>
+        } 
+      />
+      <Route 
+        path="/medical-certificates/:id" 
+        element={
+          <PrivateRoute>
+            <MedicalCertificateDetailPage />
+          </PrivateRoute>
+        } 
+      />
+
+      {/* Doctor Access Route */}
+      <Route 
+        path="/doctor-access" 
+        element={
+          <PrivateRoute>
+            <DoctorAccessPage />
+          </PrivateRoute>
+        } 
+      />
+
+      {/* Patients Route */}
+      <Route 
+        path="/patients" 
+        element={
+          <PrivateRoute>
+            <PatientsPage />
+          </PrivateRoute>
+        } 
+      />
+      <Route 
+        path="/patients/:patientId" 
+        element={
+          <PrivateRoute>
+            <PatientArchivePage />
           </PrivateRoute>
         } 
       />
